@@ -4,6 +4,11 @@ import Syntax;
 import Resolve;
 import AST;
 
+import List;
+import IO;
+import Relation;
+import ParseTree;
+
 /* 
  * Transforming QL forms
  */
@@ -29,7 +34,35 @@ import AST;
  */
  
 AForm flatten(AForm f) {
+  f.questions = flatten(f.questions, []);
   return f; 
+}
+
+list[AQuestion] flatten(list[AQuestion] questions, list[AExpr] ids){
+  list[AQuestion] new = [];
+  for(q <- questions){
+    if(q has id){
+      new += ifq(andExpr(ids), [q]);
+    } else{
+      ids += q.cond;
+      new += flatten(q.ifQuestions, ids);
+      ids = prefix(ids);
+      if(q has elseQuestions){
+        ids += not(q.cond);
+        new += flatten(q.elseQuestions, ids);
+        ids = prefix(ids);
+      }
+    }
+  }
+  return new;
+}
+
+AExpr andExpr(list[AExpr] exprs){
+  AExpr ret = boolval(true);
+  for(expr <- exprs){
+    ret = and(ret, expr);
+  }
+  return ret;
 }
 
 /* Rename refactoring:
@@ -40,7 +73,25 @@ AForm flatten(AForm f) {
  */
  
 start[Form] rename(start[Form] f, loc useOrDef, str newName, UseDef useDef) {
-   return f; 
+  set[loc] use = invert(useDef)[useOrDef];
+  for(u <- use){
+    use += useDef[u];
+  }
+  for(/Question q := f){
+    if(q.src in use){
+      use += q.name.src;
+    }
+  }
+  Id newNameId = [Id]newName;
+
+  f.top = visit(f.top){
+    case (Expr e)`<Id oldName>`: {if(oldName.src in use){insert (Expr)`<Id newNameId>`;}}
+    case (Question)`<Str text> <Id name> : <Type typeval>`: {if(name.src in use){insert (Question)`<Str text> <Id newNameId> : <Type typeval>`;}}
+    case (Question)`<Str text> <Id name> : <Type typeval> = <Expr expr>` :if(name.src in use){insert (Question)`<Str text> <Id newNameId> : <Type typeval> = <Expr expr>`;}
+    default: {};
+  }
+  
+  return f; 
 } 
  
  
