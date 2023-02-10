@@ -27,13 +27,13 @@ data Input
 // produce an environment which for each question has a default value
 // (e.g. 0 for int, "" for str etc.)
 VEnv initialEnv(AForm f) {
-  map[str, \Value] ret;
-  for(/AQuestion q := f){
+  map[str, Value] ret = ();
+  for(/AQuestion q <- f){
     if(q has id){
       switch(q.atype.atype){
-        case "int": ret += (q.id.name, vint(0));
-        case "bool": ret += (q.id.name, vbool(false));
-        case "str": ret += (q.id.name, vstr(""));
+        case "int": ret += (q.id.name: vint(0));
+        case "bool": ret += (q.id.name: vbool(false));
+        case "str": ret += (q.id.name: vstr(""));
       }
     }
   };
@@ -50,7 +50,7 @@ VEnv eval(AForm f, Input inp, VEnv venv) {
 }
 
 VEnv evalOnce(AForm f, Input inp, VEnv venv) {
-  for(AQuestion q := f){
+  for(AQuestion q <- f.questions){
     venv += eval(q, inp, venv);
   }
   return venv; 
@@ -66,12 +66,12 @@ VEnv eval(AQuestion q, Input inp, VEnv venv) {
       venv += (q.id.name: inp.\value);
     }
   } else{
-    if(eval(q.cond) == vbool(true)){
-      for(AQuestion q2 := q.ifQuestions){
+    if(eval(q.cond, venv) == vbool(true)){
+      for(AQuestion q2 <- q.ifQuestions){
         venv += eval(q2, inp, venv);
       }
     } else if(q has elseQuestions){
-      for(AQuestion q2 := q.elseQuestions){
+      for(AQuestion q2 <- q.elseQuestions){
         venv += eval(q2, inp, venv);
       }
     }
@@ -82,7 +82,7 @@ VEnv eval(AQuestion q, Input inp, VEnv venv) {
 
 Value eval(AExpr e, VEnv venv) {
   switch (e) {
-    case ref(id(str x)): return venv[x];
+    case ref(aid(str x)): return venv[x];
     case intval(int n): return vint(n);
     case boolval(bool b): return vbool(b);
     case par(AExpr x): return eval(x, venv);

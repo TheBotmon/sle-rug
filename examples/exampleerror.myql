@@ -1,0 +1,22 @@
+form taxOfficeExample { 
+  "Did you buy a house in 2010?"
+    hasBoughtHouse: boolean
+  "Did you buy a house in 2010?"                                            // duplicate label
+    hasSoldHouse: boolean  
+  if(hasSoldHouse || 5){                                                    // or with integer
+    "What was the selling price?"
+      sellingPrice: integer
+  }
+  if(hasBoughtHouse){
+    "What was the buying price?"
+      buyingPrice: integer
+  }
+  "profit"
+    profit: integer = sellingPrice - buyingPrice + hasBoughtHouse           // add a boolean
+  "has both sold and bought a house"
+    profitGood: boolean = hasBoughtHouse && hasSoldHouse || undefined       // reference to undifined question
+  "second has bought house"                                                 
+    hasBoughtHouse : integer                                                // second declaration of question with different type
+  if(5){                                                                    // integer as condition
+  }
+}
