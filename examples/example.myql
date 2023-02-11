@@ -1,0 +1,18 @@
+form taxOfficeExample { 
+  "Did you buy a house in 2010?"
+    hasBoughtHouse: boolean
+  "Did you sell a house in 2010?"
+    hasSoldHouse: boolean  
+  if(hasSoldHouse){
+    "What was the selling price?"
+      sellingPrice: integer
+  }
+  if(hasBoughtHouse){
+    "What was the buying price?"
+      buyingPrice: integer
+  }
+  "profit"
+    profit: integer = sellingPrice - buyingPrice
+  "Has both sold and bought a house"
+    profitGood: boolean = hasBoughtHouse && hasSoldHouse
+}

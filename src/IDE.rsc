@@ -9,6 +9,7 @@ import util::LanguageServer;
 import util::Reflective;
 
 import IO;
+import String;
 
 import Syntax;
 import AST;
@@ -18,7 +19,7 @@ import Check;
 import Compile;
 import Message;
 import ParseTree;
-
+import Transform;
 
 set[LanguageService] myLanguageContributor() = {
     parser(Tree (str input, loc src) {
@@ -74,3 +75,29 @@ void main() {
 }
 
 
+/*
+ * Function to compile a file
+ * Parameter: the path/name to the file in the example folder
+ * Returns the messages (warnings and errors)
+ * Outputs a HTML and JS file in the same folder if there were no errors
+ */
+
+set[Message] compileFile(str path){
+  loc l = |project://sle-rug/examples/| + path;
+  str file = readFile(l);
+  start[Form] input = parse(#start[Form], file, l);
+  AForm ast = cst2ast(input);
+  RefGraph g = resolve(ast);
+  TEnv tenv = collect(ast);
+  
+  set[Message] msgs = check(ast, tenv, g.useDef);
+  for(Message msg <- msgs){
+    switch(msg){
+      case error(str s, loc c):
+        return msgs;
+    }
+  }
+  myCommands(compileQL(input));
+ 
+  return msgs;
+}
