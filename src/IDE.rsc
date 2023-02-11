@@ -89,8 +89,6 @@ set[Message] compileFile(str path){
   AForm ast = cst2ast(input);
   RefGraph g = resolve(ast);
   TEnv tenv = collect(ast);
-
-  //input = rename(input, input.top.questions[0].src, "has", g.useDef);
   
   set[Message] msgs = check(ast, tenv, g.useDef);
   for(Message msg <- msgs){
